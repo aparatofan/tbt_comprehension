@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TBT Comprehension Table Generator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 920px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #f7f9fc;
+    color: #222;
+  }
+  h1 {
+    color: #0856C9;
+    margin-bottom: 6px;
+  }
+  p.subtitle {
+    color: #555;
+    margin-top: 0;
+    margin-bottom: 24px;
+  }
+  .controls {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .controls label {
+    font-weight: bold;
+    color: #333;
+  }
+  select {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #c8d3e2;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+  }
+  .swatch {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-left: 8px;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+  textarea {
+    width: 100%;
+    min-height: 220px;
+    padding: 12px;
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    border: 1px solid #c8d3e2;
+    border-radius: 6px;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  .buttons {
+    margin: 14px 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button {
+    background: #0856C9;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button.secondary { background: #5a6b80; }
+  button:hover { opacity: 0.92; }
+  .output-section { margin-top: 24px; }
+  .output-label {
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #0856C9;
+  }
+  pre.html-output {
+    background: #fff;
+    border: 1px solid #c8d3e2;
+    border-radius: 6px;
+    padding: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .preview-box {
+    background: #fff;
+    border: 1px solid #c8d3e2;
+    border-radius: 6px;
+    padding: 18px;
+  }
+  .qa-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: Arial, sans-serif;
+  }
+  .qa-table td {
+    padding: 8px 10px;
+    vertical-align: middle;
+    border-bottom: 1px solid #e8eef7;
+  }
+  .qa-table .col-num { width: 40px; text-align: center; }
+  .qa-table .col-time { width: 60px; color: #444; font-weight: 600; }
+  .circle_pd {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+    line-height: 26px;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    font-size: 13px;
+  }
+  .status {
+    font-weight: bold;
+    font-size: 13px;
+    margin-left: 8px;
+  }
+  .status.ok { color: #2ecc71; }
+  .status.info { color: #0856C9; }
+  .status.err { color: #c0392b; }
+  details {
+    margin-top: 20px;
+    background: #fff;
+    border: 1px solid #c8d3e2;
+    border-radius: 6px;
+    padding: 10px 14px;
+  }
+  details summary {
+    cursor: pointer;
+    color: #0856C9;
+    font-weight: bold;
+  }
+  details code {
+    background: #eef3fa;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<h1>TBT Comprehension Table Generator</h1>
+<p class="subtitle">Paste your timestamped questions below, choose a topic, and click <strong>Generate</strong>.</p>
+
+<div class="controls">
+  <label for="topic">Topic:</label>
+  <select id="topic" onchange="updateSwatch(); generate();">
+    <option value="learn_english">LEARN ENGLISH</option>
+    <option value="general_interest">GENERAL INTEREST</option>
+    <option value="personal_development">PERSONAL DEVELOPMENT</option>
+  </select>
+  <span id="swatch" class="swatch"></span>
+  <span id="hex-label" style="color:#555; font-family: Consolas, monospace; font-size: 13px;"></span>
+</div>
+
+<label for="input"><strong>Input</strong> (format: <code>0:18 Question text</code> — one per line)</label>
+<textarea id="input" placeholder="0:18 Is empathy a commonly known term?
+0:39 What are we going to look into in this video series?
+0:55 What is the definition of the word &quot;empathy&quot;?
+1:07 What does it mean to emotionally resonate with someone?"></textarea>
+
+<div class="buttons">
+  <button onclick="generate()">Generate table</button>
+  <button class="secondary" onclick="copyHtml()">Copy HTML</button>
+  <button class="secondary" onclick="loadExample()">Load example</button>
+  <span id="status" class="status"></span>
+</div>
+
+<div class="output-section">
+  <div class="output-label">Live preview</div>
+  <div id="preview" class="preview-box"><em style="color:#888;">Preview will appear here.</em></div>
+</div>
+
+<div class="output-section">
+  <div class="output-label">HTML code (paste into WordPress)</div>
+  <pre id="html-output" class="html-output"><em style="color:#888;">HTML will appear here.</em></pre>
+</div>
+
+<details>
+  <summary>Tips & formatting options</summary>
+  <ul style="line-height: 1.7;">
+    <li>Each line must start with a timestamp like <code>0:18</code> or <code>12:05</code>, followed by a space, then the question.</li>
+    <li>For italicised foreign terms (e.g. <em>ikigai</em>, <em>protégé</em>), wrap them in asterisks: <code>*ikigai*</code> or underscores: <code>_ikigai_</code>.</li>
+    <li>Bullet colours: <strong>LEARN ENGLISH</strong> = #660000, <strong>GENERAL INTEREST</strong> = #663366, <strong>PERSONAL DEVELOPMENT</strong> = #006600.</li>
+    <li>The <strong>Copy HTML</strong> button works whether you open this file from your computer or host it online.</li>
+  </ul>
+</details>
+
+<script>
+const TOPIC_COLORS = {
+  learn_english: '#660000',
+  general_interest: '#663366',
+  personal_development: '#006600'
+};
+
+function getSelectedColor() {
+  const topic = document.getElementById('topic').value;
+  return TOPIC_COLORS[topic];
+}
+
+function updateSwatch() {
+  const color = getSelectedColor();
+  document.getElementById('swatch').style.background = color;
+  document.getElementById('hex-label').textContent = color;
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function applyInlineFormatting(text) {
+  let safe = escapeHtml(text);
+  safe = safe.replace(/\*([^*]+)\*/g, '<i>$1</i>');
+  safe = safe.replace(/_([^_]+)_/g, '<i>$1</i>');
+  return safe;
+}
+
+function parseInput(raw) {
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const rows = [];
+  const re = /^(\d{1,2}:\d{2})\s+(.+)$/;
+  for (const line of lines) {
+    const m = line.match(re);
+    if (m) rows.push({ time: m[1], question: m[2].trim() });
+  }
+  return rows;
+}
+
+function buildHtml(rows, color) {
+  if (rows.length === 0) return '';
+  let html = '<table class="qa-table">\n<tbody>\n';
+  rows.forEach((row, i) => {
+    const num = i + 1;
+    const questionHtml = applyInlineFormatting(row.question);
+    const parts = questionHtml.split(/(<i>[^<]+<\/i>)/g);
+    const wrapped = parts.map(p => {
+      if (p.startsWith('<i>')) {
+        const inner = p.replace(/<i>([^<]+)<\/i>/, '$1');
+        return '<i><span style="font-weight: 400;">' + inner + '</span></i>';
+      } else if (p.length > 0) {
+        return '<span style="font-weight: 400;">' + p + '</span>';
+      }
+      return '';
+    }).join('');
+    html += '<tr>\n';
+    html += '<td class="col-num"><span class="circle_pd" style="background-color: ' + color + ';">' + num + '</span></td>\n';
+    html += '<td class="col-time">' + escapeHtml(row.time) + '</td>\n';
+    html += '<td class="col-q">' + wrapped + '</td>\n';
+    html += '</tr>\n';
+  });
+  html += '</tbody>\n</table>';
+  return html;
+}
+
+function setStatus(text, type) {
+  const el = document.getElementById('status');
+  el.textContent = text;
+  el.className = 'status ' + (type || '');
+}
+
+function generate() {
+  const raw = document.getElementById('input').value;
+  const rows = parseInput(raw);
+  const color = getSelectedColor();
+
+  if (rows.length === 0) {
+    document.getElementById('preview').innerHTML =
+      '<em style="color:#c0392b;">No valid lines found. Format must be: <code>0:18 Question text</code></em>';
+    document.getElementById('html-output').textContent = '';
+    setStatus('', '');
+    return;
+  }
+
+  const html = buildHtml(rows, color);
+  document.getElementById('preview').innerHTML = html;
+  document.getElementById('html-output').textContent = html;
+  setStatus('✓ ' + rows.length + ' question' + (rows.length === 1 ? '' : 's') + ' generated', 'ok');
+}
+
+// Reliable copy: tries the modern Clipboard API first, falls back to
+// execCommand for cases where the page is opened from the local filesystem
+// (file://) where the Clipboard API is blocked.
+function copyHtml() {
+  const text = document.getElementById('html-output').textContent;
+  if (!text || text.trim().length === 0 || text.indexOf('HTML will appear') !== -1) {
+    setStatus('Generate the table first.', 'err');
+    return;
+  }
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(
+      () => setStatus('✓ HTML copied to clipboard', 'info'),
+      () => fallbackCopy(text)
+    );
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.top = '0';
+  ta.style.left = '0';
+  ta.style.opacity = '0';
+  ta.setAttribute('readonly', '');
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  document.body.removeChild(ta);
+  if (ok) {
+    setStatus('✓ HTML copied to clipboard', 'info');
+  } else {
+    setStatus('Copy failed — please select the HTML manually and copy.', 'err');
+  }
+}
+
+function loadExample() {
+  document.getElementById('input').value =
+    '0:18 Is empathy a commonly known term?\n' +
+    '0:39 What are we going to look into in this video series?\n' +
+    '0:55 What is the definition of the word "empathy"?\n' +
+    '1:07 What does it mean to emotionally resonate with someone?';
+  generate();
+}
+
+updateSwatch();
+</script>
+
+</body>
+</html>

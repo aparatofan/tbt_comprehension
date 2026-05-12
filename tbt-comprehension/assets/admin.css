@@ -1,0 +1,145 @@
+.tbt-comp {
+	max-width: 1100px;
+}
+
+.tbt-comp .tbt-subtitle {
+	color: #555;
+	margin-top: 0;
+	margin-bottom: 20px;
+	max-width: 820px;
+}
+
+.tbt-comp .tbt-controls {
+	display: flex;
+	gap: 14px;
+	align-items: center;
+	flex-wrap: wrap;
+	margin-bottom: 14px;
+}
+
+.tbt-comp .tbt-swatch {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	vertical-align: middle;
+	border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.tbt-comp .tbt-hex-label {
+	color: #555;
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 13px;
+}
+
+.tbt-comp .tbt-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 18px;
+	margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+	.tbt-comp .tbt-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.tbt-comp .tbt-col label {
+	display: block;
+	margin-bottom: 6px;
+}
+
+.tbt-comp .tbt-hint-text {
+	color: #666;
+	font-weight: normal;
+	margin-left: 6px;
+}
+
+.tbt-comp textarea {
+	width: 100%;
+	min-height: 200px;
+	padding: 10px;
+	font-family: Consolas, "Courier New", monospace;
+	font-size: 13px;
+	border: 1px solid #c8d3e2;
+	border-radius: 6px;
+	box-sizing: border-box;
+	resize: vertical;
+}
+
+.tbt-comp .tbt-buttons {
+	margin: 14px 0;
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.tbt-comp .tbt-status {
+	font-weight: bold;
+	font-size: 13px;
+}
+
+.tbt-comp .tbt-status.ok { color: #2ecc71; }
+.tbt-comp .tbt-status.info { color: #0856c9; }
+.tbt-comp .tbt-status.err { color: #c0392b; }
+
+.tbt-comp .tbt-output-section {
+	margin-top: 22px;
+}
+
+.tbt-comp .tbt-output-label {
+	font-weight: bold;
+	margin-bottom: 6px;
+	color: #0856c9;
+}
+
+.tbt-comp .tbt-preview-box {
+	background: #fff;
+	border: 1px solid #c8d3e2;
+	border-radius: 6px;
+	padding: 18px;
+}
+
+.tbt-comp .tbt-html-output {
+	background: #fff;
+	border: 1px solid #c8d3e2;
+	border-radius: 6px;
+	padding: 14px;
+	white-space: pre-wrap;
+	word-break: break-word;
+	font-size: 12.5px;
+	max-height: 340px;
+	overflow-y: auto;
+	margin: 0;
+}
+
+.tbt-comp .tbt-muted {
+	color: #888;
+}
+
+.tbt-comp .tbt-tips {
+	margin-top: 22px;
+	background: #fff;
+	border: 1px solid #c8d3e2;
+	border-radius: 6px;
+	padding: 10px 14px;
+}
+
+.tbt-comp .tbt-tips summary {
+	cursor: pointer;
+	color: #0856c9;
+	font-weight: bold;
+}
+
+.tbt-comp .tbt-tips ul {
+	line-height: 1.7;
+	margin: 10px 0 0 18px;
+}
+
+.tbt-comp .tbt-tips code {
+	background: #eef3fa;
+	padding: 1px 5px;
+	border-radius: 3px;
+}
