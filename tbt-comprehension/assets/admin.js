@@ -90,7 +90,7 @@
 
 	function parseQa(raw) {
 		var lines = raw.split(/\r?\n/).filter(function (l) { return l.trim().length > 0; });
-		if (lines.length === 0) return {};
+		if (lines.length === 0) return { rows: [], map: {} };
 
 		// Skip a header row if it clearly looks like one.
 		var first = lines[0].toLowerCase();
@@ -98,6 +98,7 @@
 			lines.shift();
 		}
 
+		var rows = [];
 		var map = {};
 		for (var i = 0; i < lines.length; i++) {
 			var line = lines[i];
@@ -109,16 +110,17 @@
 				delim = ',';
 				parts = parseCsvLine(line);
 			}
-			if (parts.length < 3) continue;
+			if (parts.length < 2) continue;
 			var key = normalizeTime(parts[0]);
 			if (!key) continue;
+			var question = (parts[1] || '').trim();
 			// Rejoin any extra columns so an answer that contained the delimiter
 			// is preserved intact (e.g. a CSV answer with unquoted commas).
-			var answer = parts.slice(2).join(delim).trim();
-			if (!answer) continue;
-			map[key] = answer;
+			var answer = parts.length >= 3 ? parts.slice(2).join(delim).trim() : '';
+			rows.push({ time: key, question: question, answer: answer });
+			if (answer) map[key] = answer;
 		}
-		return map;
+		return { rows: rows, map: map };
 	}
 
 	function wrapQuestion(questionHtml) {
@@ -188,18 +190,29 @@
 		var raw = $('tbt-input').value;
 		var qaRaw = $('tbt-qa').value;
 		var rows = parseInput(raw);
-		var qaMap = parseQa(qaRaw);
+		var qa = parseQa(qaRaw);
 		var color = getSelectedColor();
 
+		// If the Questions box is empty but the Q&A box has data, use the Q&A
+		// rows as the source of truth — the timestamp/question columns build
+		// the table and the answer column becomes the hint.
+		var sourceUsed = 'questions';
+		if (rows.length === 0 && qa.rows.length > 0) {
+			rows = qa.rows.map(function (r) { return { time: r.time, question: r.question }; });
+			sourceUsed = 'qa';
+		}
+
 		if (rows.length === 0) {
-			$('tbt-preview').innerHTML =
-				'<em style="color:#c0392b;">No valid lines found. Format must be: <code>0:18 Question text</code></em>';
+			var msgEmpty = qaRaw.trim().length > 0
+				? 'No valid rows found. Paste 3 columns (timestamp, question, answer) — tabs from Excel or commas.'
+				: 'No valid lines found. Format must be: <code>0:18 Question text</code>';
+			$('tbt-preview').innerHTML = '<em style="color:#c0392b;">' + msgEmpty + '</em>';
 			$('tbt-html-output').textContent = '';
 			setStatus('', '');
 			return;
 		}
 
-		var result = buildHtml(rows, qaMap, color);
+		var result = buildHtml(rows, qa.map, color);
 		$('tbt-preview').innerHTML = result.html;
 		$('tbt-html-output').textContent = result.html;
 
@@ -207,9 +220,12 @@
 		if (result.hintCount > 0) {
 			msg += ', ' + result.hintCount + ' with hint' + (result.hintCount === 1 ? '' : 's');
 		}
+		if (sourceUsed === 'qa') {
+			msg += ' (from Hint Q&A box)';
+		}
 		// Warn if hints were provided but none matched a question row.
-		var qaCount = Object.keys(qaMap).length;
-		if (qaCount > 0 && result.hintCount === 0) {
+		var qaCount = Object.keys(qa.map).length;
+		if (sourceUsed === 'questions' && qaCount > 0 && result.hintCount === 0) {
 			setStatus(msg + ' — hint rows provided but none matched any timestamp', 'err');
 		} else {
 			setStatus(msg, 'ok');

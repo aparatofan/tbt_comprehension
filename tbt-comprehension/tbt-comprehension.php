@@ -53,7 +53,7 @@ function tbt_comp_render_admin_page() {
 	<div class="wrap tbt-comp">
 		<h1><?php esc_html_e( 'TBT Comprehension Table Generator', 'tbt-comprehension' ); ?></h1>
 		<p class="tbt-subtitle">
-			<?php esc_html_e( 'Paste your timestamped questions, optionally paste Q&A hints, choose a topic and click Generate. Copy the resulting HTML into a Custom HTML block in your post.', 'tbt-comprehension' ); ?>
+			<?php esc_html_e( 'You can either (a) paste timestamped questions on the left, or (b) paste 3 columns straight from Excel on the right (timestamp, question, answer). Choose a topic, click Generate, then copy the HTML into a Custom HTML block in your post.', 'tbt-comprehension' ); ?>
 		</p>
 
 		<div class="tbt-controls">
@@ -74,7 +74,7 @@ function tbt_comp_render_admin_page() {
 					<span class="tbt-hint-text">
 						<?php
 						echo wp_kses_post(
-							__( '(format: <code>0:18 Question text</code> &mdash; one per line)', 'tbt-comprehension' )
+							__( '(optional if the Q&A box is filled. Format: <code>0:18 Question text</code> &mdash; one per line)', 'tbt-comprehension' )
 						);
 						?>
 					</span>
@@ -87,11 +87,11 @@ function tbt_comp_render_admin_page() {
 
 			<div class="tbt-col">
 				<label for="tbt-qa">
-					<strong><?php esc_html_e( 'Hint Q&A (optional)', 'tbt-comprehension' ); ?></strong>
+					<strong><?php esc_html_e( 'Hint Q&A', 'tbt-comprehension' ); ?></strong>
 					<span class="tbt-hint-text">
 						<?php
 						echo wp_kses_post(
-							__( '(paste 3 columns from Excel: <code>timestamp&nbsp;|&nbsp;question&nbsp;|&nbsp;answer</code>)', 'tbt-comprehension' )
+							__( '(paste 3 columns from Excel: <code>timestamp&nbsp;|&nbsp;question&nbsp;|&nbsp;answer</code>. If the Questions box is empty, the table is built from here.)', 'tbt-comprehension' )
 						);
 						?>
 					</span>
