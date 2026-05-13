@@ -92,9 +92,11 @@
 		var lines = raw.split(/\r?\n/).filter(function (l) { return l.trim().length > 0; });
 		if (lines.length === 0) return { rows: [], map: {} };
 
-		// Skip a header row if it clearly looks like one.
-		var first = lines[0].toLowerCase();
-		if (first.indexOf('timestamp') !== -1 || first.indexOf('time') === 0 || first.indexOf('question') !== -1 || first.indexOf('answer') !== -1) {
+		// Skip a header row only if its first column is not a valid timestamp.
+		// (Checking for words like "question" in the line is too aggressive —
+		// real question text often contains the word "question".)
+		var firstCol = lines[0].split(/\t|,/)[0].trim();
+		if (!normalizeTime(firstCol)) {
 			lines.shift();
 		}
 
