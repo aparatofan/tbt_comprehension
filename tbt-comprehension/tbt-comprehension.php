@@ -16,18 +16,53 @@ define( 'TBT_COMP_VERSION', '1.0.0' );
 define( 'TBT_COMP_URL', plugin_dir_url( __FILE__ ) );
 define( 'TBT_COMP_PATH', plugin_dir_path( __FILE__ ) );
 
-add_action( 'admin_menu', function () {
-	add_management_page(
-		__( 'TBT Comprehension', 'tbt-comprehension' ),
-		__( 'TBT Comprehension', 'tbt-comprehension' ),
-		'edit_posts',
-		'tbt-comprehension',
-		'tbt_comp_render_admin_page'
-	);
-} );
+/**
+ * Hook suffix of our admin page, captured at registration so the enqueue
+ * callback can match it whether we live under the TBT hub or the fallback
+ * top-level menu. (The old hard-coded `tools_page_…` suffix broke as soon as
+ * the parent changed.)
+ *
+ * @var string
+ */
+$GLOBALS['tbt_comp_page_hook'] = '';
 
-add_action( 'admin_enqueue_scripts', function ( $hook ) {
-	if ( $hook !== 'tools_page_tbt-comprehension' ) {
+add_action( 'admin_menu', 'tbt_comp_register_menu' );
+/**
+ * Register the admin page: under the TBT hub when active, otherwise a
+ * top-level menu of its own so the tool is never unreachable.
+ */
+function tbt_comp_register_menu() {
+	if ( defined( 'TBT_HUB_SLUG' ) ) {
+		$hook = add_submenu_page(
+			TBT_HUB_SLUG,
+			__( 'TBT Comprehension', 'tbt-comprehension' ),
+			__( 'TBT Comprehension', 'tbt-comprehension' ),
+			'edit_posts',
+			'tbt-comprehension',
+			'tbt_comp_render_admin_page'
+		);
+	} else {
+		$hook = add_menu_page(
+			__( 'TBT Comprehension', 'tbt-comprehension' ),
+			__( 'TBT Comprehension', 'tbt-comprehension' ),
+			'edit_posts',
+			'tbt-comprehension',
+			'tbt_comp_render_admin_page',
+			'dashicons-editor-table',
+			3
+		);
+	}
+	$GLOBALS['tbt_comp_page_hook'] = $hook;
+}
+
+add_action( 'admin_enqueue_scripts', 'tbt_comp_admin_enqueue' );
+/**
+ * Enqueue the generator assets only on our own admin page.
+ *
+ * @param string $hook Current admin page hook suffix.
+ */
+function tbt_comp_admin_enqueue( $hook ) {
+	if ( empty( $GLOBALS['tbt_comp_page_hook'] ) || $hook !== $GLOBALS['tbt_comp_page_hook'] ) {
 		return;
 	}
 	wp_enqueue_style(
@@ -43,7 +78,24 @@ add_action( 'admin_enqueue_scripts', function ( $hook ) {
 		TBT_COMP_VERSION,
 		true
 	);
-} );
+}
+
+/**
+ * Register this plugin on the TBT Hub Overview page.
+ *
+ * @param array $items Existing hub items.
+ * @return array
+ */
+function tbt_comp_register_hub_item( $items ) {
+	$items[] = array(
+		'slug'        => 'tbt-comprehension',
+		'title'       => 'TBT Comprehension',
+		'description' => 'Generate timestamped comprehension tables with optional hover-to-reveal hint answers.',
+		'capability'  => 'edit_posts',
+	);
+	return $items;
+}
+add_filter( 'tbt_hub_items', 'tbt_comp_register_hub_item' );
 
 function tbt_comp_render_admin_page() {
 	if ( ! current_user_can( 'edit_posts' ) ) {
